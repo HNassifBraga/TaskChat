@@ -35,8 +35,8 @@ export function GetAllUsers()
     return (
     <>
         <NavBar/>
-        <div className='p-5'>
-            <table className='table mr-5'>
+        <div className='p-5 '>
+            <table className='table mr-5 '>
                 <thead>
                     <tr>
                         <th scope='col'>id</th>

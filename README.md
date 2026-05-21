@@ -16,5 +16,8 @@ Criar uma plataforma centralizada para otimizar a distribuição de demandas cor
 - [x] Configurar container do banco de dados (PostgreSQL) com Docker Volumes
 - [x] Criar a estrutura base da API do Servidor
 - [x] Desenvolver o sistema de autenticação
-- [ ] Implementar o painel Kanban (Atribuição Direta e Task Pool)
 - [ ] Implementar o Chat em Tempo Real (WebSockets)
+- [ ] Implementar o painel Kanban (Atribuição Direta e Task Pool)
+- [ ] Implementar pagina sua empresa
+- [ ] Implementar pagina cadastro
+- [ ]?

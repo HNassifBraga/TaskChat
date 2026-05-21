@@ -2,11 +2,11 @@
 
 
 import jwt from 'jsonwebtoken';
-import {UserRepository, CompanyRepository} from './repositories'
+import {UserRepository, CompanyRepository, TaskRepository, ChatRepositorie} from './repositories'
 import type {CreateCompanyDTO} from './repositories'
 import { hash, compareSync } from 'bcrypt';
 import 'dotenv/config';
-import { ChatRepositorie } from './repositories';
+
 
  // Nível de segurança/complexidade
 interface CreateUserDTO {
@@ -237,8 +237,48 @@ export class chatService{
     constructor(private readonly chatRep:ChatRepositorie = new ChatRepositorie()){}
     async createChat(nome:string, companyId:number, tipo:'DIRECT'|'GROUP')
     {
-        const chat =await this.chatRep.createChat(nome, companyId, tipo);
-        return chat;
+        try{
+            const chat =await this.chatRep.createChat(nome, companyId, tipo);
+            const msgs:{userId:number, content:string }[] = [];
+            if(!chat.message)return;
+            chat.message.map((msg)=>{
+                const obj = {userId:msg.userId, content:msg.content, data:msg.createdAt};
+                msgs.push(obj);
+            })
+            return msgs
+        }catch(e)
+        {
+            console.log(e)
+        }
 
+    }
+
+    async createMessage(userId:number, content:string, chatName:string)
+    {
+        try{
+            const chat = await this.chatRep.getChat(chatName);
+            if(!chat) throw new Error('Não existe nenhum chat com esse nome');
+    
+            const message = await this.chatRep.addMessage(userId, chat.id, content);
+            return message;
+        }catch(e)
+        {
+            console.log(e);
+        }
+    }
+}
+
+export class TaskService{
+    constructor(private readonly taskrepo:TaskRepository = new TaskRepository(), private readonly chatrepo:ChatRepositorie = new ChatRepositorie()){}
+
+    async createTask(companyId:number, autorId:number, atarefadoId:number, status:string, dateLimit:Date, tarefa:string)
+    {
+
+        const sortedIds = [autorId, atarefadoId].sort((a, b) => a - b);
+        const privateRoomId = `dm_${sortedIds[0]}_${sortedIds[1]}`;
+
+
+        const task = this.taskrepo.createTask(companyId, autorId, atarefadoId, chatId, status, dateLimit, tarefa);
+        return task;
     }
 }

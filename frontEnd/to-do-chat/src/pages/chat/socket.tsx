@@ -1,33 +1,26 @@
 import { useEffect, useState, useRef } from 'react';
 import {  Socket } from 'socket.io-client';
-import { getUserCookie } from '../../services/getUserCookie/getUserCookie';
 
 interface ChatComponentProps {
   amigoSelecionadoId: number;
   socketInstancia: Socket; // Recebe o socket do pai
+  companyId:number|null,
+  userId:number|null
 }
-export function ChatComponent({ amigoSelecionadoId, socketInstancia}: ChatComponentProps) {
+export function ChatComponent({ amigoSelecionadoId, socketInstancia, companyId, userId}: ChatComponentProps) {
 
 
   
   const [currentRoom, setCurrentRoom] = useState<string>('');
   const socket:Socket = socketInstancia;
-
+  const companyid = companyId;
+  const userid = userId;
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState('');
-  const [cookies, setCookies]= useState<any>(null)
   
   // Guardamos a sala atual em uma Ref para que o socket.on sempre tenha acesso ao valor mais recente
-  const currentRoomRef = useRef(currentRoom);
+  const currentRoomRef = useRef(currentRoom);  
 
-  useEffect(()=>{
-    const cookie = async()=>{
-      const cookies = await getUserCookie();
-      setCookies(cookies);
-      console.log(cookies)
-    }
-    cookie();
-  },[])
   // Toda vez que o estado currentRoom mudar, atualizamos a Ref
   useEffect(() => {
     currentRoomRef.current = currentRoom;
@@ -35,16 +28,15 @@ export function ChatComponent({ amigoSelecionadoId, socketInstancia}: ChatCompon
 
 
 
-  // 2. useEffect para gerenciar os ouvintes de eventos (Listeners)
-  // Toda vez que a sala mudar, nós limpamos os eventos antigos e criamos novos com o escopo atualizado
   useEffect(() => {
     if (!socket) return;
 
     // Escuta quando o backend confirma que a sala privada foi criada/entrou
-    socket.on('private-chat-ready', (data: { roomId: string }) => {
+    socket.on('private-chat-ready', (data: { roomId: string, chatMessages:{ content:string,  userId:number }[] }) => {
 
       setCurrentRoom(data.roomId);
-      setMessages([]); // Aqui você poderia buscar o histórico de mensagens do banco de dados (Prisma) via fetch/axios
+      console.log('messages',data.chatMessages)
+      setMessages(data.chatMessages); 
     });//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Escuta a chegada de novas mensagens do amigo
@@ -64,36 +56,35 @@ export function ChatComponent({ amigoSelecionadoId, socketInstancia}: ChatCompon
   }, [currentRoom, socket]); // Executa novamente se mudarmos de sala
 
   // 3. Notificar o backend sobre a troca de amigo selecionado
-  console.log('cookies',cookies);
   //sempre que amigoselecionado mudar, realize o evento join-private-chat que realizara a funçao no servidor
   useEffect(() => {
     if (amigoSelecionadoId && socket) {
-      socket.emit('join-private-chat', { targetUserId: amigoSelecionadoId, companyId:cookies.companyId, tipo:'DIRECT'});
+      socket.emit('join-private-chat', { targetUserId: amigoSelecionadoId, companyId:companyid, tipo:'DIRECT'});
     }
-  }, [amigoSelecionadoId,socket, cookies]);
+  }, [amigoSelecionadoId,socket,companyid]);
 
   //funçao que ativa o evento send_private_message com o messageData como dado
   const handleSendMessage = () => {
     if (!text.trim() || !currentRoom) return;
 
     const messageData = {
-      roomId: currentRoom,
-      text: text
+      chatNome: currentRoom,
+      content: text,
+      userId:userid
     };
-
     socket.emit('send-private-message', messageData);
     // Adiciona o seu próprio texto na tela com o senderId marcado como você (ex: 'me')
-    setMessages((prev) => [...prev, { ...messageData, senderId: 'me', createdAt: new Date() }]);
+    setMessages((prev) => [...prev, { ...messageData, userId: userId, createdAt: new Date() }]);
     setText('');
   };
 
   return (
-    <div className='d-flex flex-column w-100 h-100 border rounded p-3'>
+    <div className='d-flex flex-column w-100 h-100 border rounded-bottom p-4 '>
       <div style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
         {messages.map((msg, index) => (
-          <div key={index}  style={{ textAlign: msg.senderId === 'me' ? 'right' : 'left', margin: '5px 0' }}>
-            <span style={{ background: msg.senderId === 'me' ? '#dcf8c6' : '#eee', padding: '5px 10px', borderRadius: '10px', display: 'inline-block' }}>
-              {msg.text}
+          <div key={index}  style={{ textAlign: msg.userId === userId ? 'right' : 'left', margin: '5px 0' }}>
+            <span style={{ background: msg.userId === userId ? '#dcf8c6' : '#eee', padding: '5px 10px', borderRadius: '10px', display: 'inline-block' }}>
+              {msg.content}
             </span>
           </div>
         ))}

@@ -3,7 +3,7 @@
 // formata e envia a resposta http apropriada
 // ). Se o campo nome não for enviado, o Controller nem deixa a requisição passar para o Service; ele já retorna um erro 400 Bad Request imediatamente.
 import {  type Request, type Response } from 'express';
-import {UserService, CompanyService,  chatService} from './services';
+import {UserService, CompanyService,  TaskService} from './services';
 import {z} from 'zod'
 import dotenv from "dotenv";
 import { createUserScheme, createCompanyScheme, loginScheme, completeSignUp,tratamentoErroZod, completeSignUpAdmin} from '../services/zod';
@@ -316,4 +316,22 @@ export class ChatController{
     //         return res.status(400).json(e)
     //     }
     // }
+}
+
+export class TaskController{
+    constructor(private readonly taskservice:TaskService = new TaskService(), private readonly userservice:UserService = new UserService()){}
+
+    async createTask(req:Request, res:Response){
+        try{
+            const token = req.cookies.token;
+            const decoded = this.userservice.decodeToken(token);
+            const {atarefadoId, status, dateLimit, tarefa, } = req.body;
+            const task = this.taskservice.createTask(decoded.companyId, decoded.userId, atarefadoId, status, dateLimit, tarefa);
+            return res.status(200).json(task)
+        }catch(e)
+        {
+            console.log(e);
+            return res.status(400).json(e)
+        }
+    }
 }

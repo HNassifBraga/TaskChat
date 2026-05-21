@@ -250,45 +250,65 @@ export class ChatRepositorie{
         return chat;
     }
 
+    async addMessage(userId:number, chatId:number, content:string)
+    {
+        const message  = await prisma.message.create({
+            data:{
+                userId:userId,
+                chatId:chatId,
+                content:content
+            }
+        });
+        return message;
+    }
+
+    async getChat(nome:string)
+    {
+        const chat = await prisma.chat.findUnique({
+            where:{
+                nome:nome
+            }
+        });
+        return chat;
+    }
 
 }
 
-// model Chat{
+export class TaskRepository
+{
+    async createTask(companyId:number, autorId:number, atarefadoId:number, chatId:number, status:string, dateLimit:Date, tarefa:string){
+        const task = await prisma.tasks.create({
+            data:{
+                companyId:companyId,
+                autorId:autorId,
+                atarefadoId:atarefadoId,
+                chatId:chatId, 
+                status:status,
+                dateLimit:dateLimit,
+                task:tarefa
+            }
+        });
+        return task;
+    }
+}
+
+// model Tasks{
 //   id Int @id @default(autoincrement())
-//   nome String
-//   createdAt DateTime @default(now())
-
-//   company Company @relation(fields: [companyId],references: [id])//uma empresa pode ter varios chats
-//   companyId Int 
-
-//   chatparticipant ChatParticipant[]//um chat pode conter varios participantes
-//   message Message[]//um chat tem varias mensages
-//   tipo Tipo
-//   tasks Tasks[]
-// }
-
-// model Message{
-//   id Int @id @default(autoincrement())
-//   content String
-//   createdAt DateTime @default(now())  
   
-//   user User @relation(fields: [userId],references: [id])//um usuario pode ter varias mensages
-//   userId Int
+//   company Company @relation(fields: [companyId],references: [id])
+//   companyId Int
 
-//   chat Chat @relation(fields: [chatId],references: [id])//um chat pode ter varias mensagens
-//   chatId Int
-// }
+//   autor User @relation("tarefaPassada",fields: [autorId],references: [id])
+//   autorId Int
 
+//   atarefado User? @relation("tarefaRecebida", fields: [atarefadoId],references: [id])
+//   atarefadoId Int?
 
-// model ChatParticipant{
-//   id Int @id @default(autoincrement())
-//   joinedAt DateTime @default(now())
-
-//   chat Chat @relation(fields: [chatId],references: [id])//um chat pode ter varios participantes
+//   chat Chat @relation(fields: [chatId],references: [id])
 //   chatId Int
 
-//   user User @relation(fields: [userId],references: [id])//um participante pode ter varios chats
-//   userId Int
-
-//   @@unique([chatId,userId])
+//   task String
+//   status String
+//   createdAt DateTime @default(now())
+//   dateLimit DateTime?
 // }

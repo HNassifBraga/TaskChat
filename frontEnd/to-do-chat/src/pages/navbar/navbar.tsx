@@ -58,9 +58,16 @@ export  function NavBar()
                         
                     )
                 }{
-                    location.pathname!== '/myCompany' && (role == 'ADMIN' || role == 'CEO') && (
+                    location.pathname!== '/myCompany' && (role == 'ADMIN' || role == 'CEO' || role == 'SUPERUSER') && (
                         <>
                             <button className='btn btn-dark' onClick={()=>navigate('/myCompany')}>sua empresa</button>
+                        </>
+                        
+                    )
+                }{
+                    location.pathname!== '/chats'  && (
+                        <>
+                            <button className='btn btn-dark' onClick={()=>navigate('/chats')}>chats</button>
                         </>
                         
                     )
