@@ -20,7 +20,15 @@
     background-color: rgba(128, 128, 128, 0.13);
     border: none;
 }
-
+.inputDate{
+        background: transparent;
+    background-color: rgba(128, 128, 128, 0.13);
+    border: none;
+}
+.inputDate::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1); /* Se o fundo for escuro, isso deixa o ícone do calendário branco */
+}
 .button{
     background: linear-gradient(135deg, #6366f1, #a855f7);
     padding: 0.6rem;
@@ -46,4 +54,35 @@
 .buttonNegar{
     background-color: rgb(15, 5, 37);
     font-weight: bolder;
+}
+
+.modal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: 1050;
+    background-color: #0f004300;
+    pointer-events: auto;
+}
+
+.insideModal{
+    background-color: #160722;
+    border: 1px solid gray;
+    width: 25rem;
+}
+
+.p{
+    font-size: 0.8rem;
+}
+
+.buttonFechar{
+    background: transparent;
+}
+
+.input{
+    background: transparent;
+    background-color: rgba(128, 128, 128, 0.13);
+    border: none;
 }

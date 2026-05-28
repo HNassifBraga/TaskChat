@@ -108,7 +108,7 @@ model Tasks{
   chatId Int
 
   task String
-  status String
+  status TaskStatus @default(A_FAZER)
   createdAt DateTime @default(now())
   dateLimit DateTime?
 }

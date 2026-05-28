@@ -3,12 +3,13 @@
 // formata e envia a resposta http apropriada
 // ). Se o campo nome não for enviado, o Controller nem deixa a requisição passar para o Service; ele já retorna um erro 400 Bad Request imediatamente.
 import {  type Request, type Response } from 'express';
-import {UserService, CompanyService,  TaskService} from './services';
+import {UserService, CompanyService,  TaskService, chatService} from './services';
 import {z} from 'zod'
 import dotenv from "dotenv";
 import { tratamentoErroZod} from './zod/zodError';
 import {createCompanyScheme, vincularCompany, updateCompanyScheme} from './zod/zodCompany'
 import { createUserScheme, loginScheme } from './zod/zodUser';
+
 import { stat } from 'fs';
 
 dotenv.config()
@@ -16,12 +17,13 @@ dotenv.config()
 
 export class UserController{
     
-    constructor(private readonly userService: UserService = new UserService()) {}
+    constructor(private readonly userService: UserService = new UserService(), private readonly chatservice:chatService = new chatService()) {}
     
     //realizar o cadastro do usuário/ tem input
     async handleCadastro(req:Request, res:Response){
         try{
             const data = createUserScheme.parse(req.body);
+            if(!(data.idade) || isNaN(Number(data.idade)))throw new Error('Digite a sua idade')
             const result = await this.userService.create(data);
             
             // creates and sends cookies
@@ -34,12 +36,10 @@ export class UserController{
         }catch(error:any)
         {
             if (error instanceof z.ZodError) {
-                tratamentoErroZod(error,res);
+                return tratamentoErroZod(error,res);
             }
             console.log(error.Error);
-            return res.status(400).json({
-                mensagem:error.message
-            })
+            return res.status(500).json({error: "erro ao processar os dados"});
         }
     }
 // _____________________________________________________________________________________________________________________________________
@@ -64,7 +64,7 @@ export class UserController{
             console.log(e);
             if(e instanceof z.ZodError)
             {
-                tratamentoErroZod(e,res);
+                return tratamentoErroZod(e,res);
             }
             res.status(400).json({mensagem:e.message});
         }
@@ -77,7 +77,7 @@ export class UserController{
     {
         const {role,id } = req.body;
         try{
-            const response = await this.userService.updateRole(role, id);
+            await this.userService.updateRole(role, id);
             return res.status(200).json('updated role');
         }catch(e)
         {
@@ -223,11 +223,24 @@ export class UserController{
     async changeStatus(req:Request,res:Response){
         try{
             const {status, id } = req.body;
-            const token= req.cookies.token;
-            const decoded = this.userService.decodeToken(token);
-            const companyId = decoded.companyId;
-            const updated = await this.userService.changeStatus(status,id, companyId);
-            console.log(updated);
+            const cookies = req.cookies.token;
+            const decoded = this.userService.decodeToken(cookies);
+
+            if(status == 'NEGADO')
+            {
+                await this.userService.desvincularCompany(id)
+            }else{
+                const active = await this.userService.activeUsersInCompany(decoded.companyId);
+                console.log(active, decoded);
+                active.map(async (u)=>{
+                    if(u.id != id)
+                    {
+                        const chat = id<decoded.id?'dm_'+`${id}_`+`${u.id}`:'dm_'+`${u.id}_`+`${id}`;
+                        await this.chatservice.createChat(chat, decoded.companyId, 'DIRECT');
+                    }
+                });
+            }
+            await this.userService.changeStatus(status, id);
             return res.status(200).json('updated')
         }catch(e)
         {
@@ -252,6 +265,7 @@ export class UserController{
             return res.status(400).json(e)
         }
     }
+
 }
 
 export class CompanyControler{
@@ -305,7 +319,8 @@ export class CompanyControler{
         try{
             const token = req.cookies.token;
             const decode = this.userService.decodeToken(token);
-            const company = await  this.companyService.getCompany(decode.id);
+            console.log(token)
+            const company = await  this.companyService.getCompany(decode.companyId);
             return res.status(200).json(company);
         }catch(e){
             return res.status(400).json(e);
@@ -329,21 +344,21 @@ export class CompanyControler{
 
 
 export class ChatController{
-    // constructor(private readonly chatservice:chatService = new chatService(), private readonly userservice:UserService = new UserService()){}
-    // async createChat(req:Request, res:Response)
-    // {
-    //     const token = req.cookies.token;
-    //     const decoded = this.userservice.decodeToken(token);
-    //     const companyId = decoded.companyId;
-    //     const {nome, tipo} = req.body;
-    //     try{
-    //         const chat = await this.chatservice.createChat(nome,companyId, tipo)
-    //         return res.status(200).json(chat);
-    //     }catch(e)
-    //     {
-    //         return res.status(400).json(e)
-    //     }
-    // }
+    constructor(private readonly chatservice:chatService = new chatService(), private readonly userservice:UserService = new UserService()){}
+    async createChat(req:Request, res:Response)
+    {
+        const token = req.cookies.token;
+        const decoded = this.userservice.decodeToken(token);
+        const companyId = decoded.companyId;
+        const {nome, tipo} = req.body;
+        try{
+            const chat = await this.chatservice.createChat(nome,companyId, tipo)
+            return res.status(200).json(chat);
+        }catch(e)
+        {
+            return res.status(400).json(e)
+        }
+    }
 }
 
 export class TaskController{
@@ -353,13 +368,34 @@ export class TaskController{
         try{
             const token = req.cookies.token;
             const decoded = this.userservice.decodeToken(token);
-            const {atarefadoId, status, dateLimit, tarefa, } = req.body;
-            const task = this.taskservice.createTask(decoded.companyId, decoded.userId, atarefadoId, status, dateLimit, tarefa);
+            const {atarefadoId, status = "A_FAZER", dateLimit, tarefa, } = req.body;
+            const task = await this.taskservice.createTask(decoded.companyId, decoded.id, atarefadoId, status, dateLimit, tarefa);
             return res.status(200).json(task)
         }catch(e)
         {
             console.log(e);
-            return res.status(400).json(e)
+            return res.status(400).json({error:e.message});
         }
     }  
+    
+                /* model Tasks{
+  id Int @id @default(autoincrement())
+  
+  company Company @relation(fields: [companyId],references: [id])
+  companyId Int
+
+  autor User @relation("tarefaPassada",fields: [autorId],references: [id])
+  autorId Int
+
+  atarefado User? @relation("tarefaRecebida", fields: [atarefadoId],references: [id])
+  atarefadoId Int?
+
+  chat Chat @relation(fields: [chatId],references: [id])
+  chatId Int
+
+  task String
+  status String
+  createdAt DateTime @default(now())
+  dateLimit DateTime?
+} */
 }

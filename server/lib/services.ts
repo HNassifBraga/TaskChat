@@ -6,7 +6,7 @@ import {UserRepository, CompanyRepository, TaskRepository, ChatRepositorie} from
 import type {CreateCompanyDTO, UpdateCompanyDTO} from './interfaces/interfacesCompany'
 import { hash, compareSync } from 'bcrypt';
 import 'dotenv/config';
-import type { CreateUserDTO, cleanUser } from './interfaces/interfacesUser';
+import type { Cookies, CreateUserDTO, cleanUser } from './interfaces/interfacesUser';
 
  // Nível de segurança/complexidade
 
@@ -82,6 +82,13 @@ export class UserService{
         return user;    
     }
 // _____________________________________________________________________________________________________________________________________
+    // remove o usuário da empresa após o ceo remove-lo
+    async desvincularCompany(id:number)
+    {
+        const user = this.userRepository.desvincularCompany( id);
+        return user;    
+    }
+// _____________________________________________________________________________________________________________________________________
 
     async createCookies (id:number)
     {
@@ -125,7 +132,7 @@ export class UserService{
 
 // _____________________________________________________________________________________________________________________________________
 
-    decodeToken(token:any){
+    decodeToken(token:any):Cookies{
         const decode = jwt.verify(token, process.env.JWT_SECRET as string)as any
         return decode;
     }   
@@ -161,8 +168,7 @@ export class UserService{
     }
 // _____________________________________________________________________________________________________________________________________
 
-    async changeStatus(status:'APROVADO'|'NEGADO', id:number, companyId:number){
-        const companyBosses = this
+    async changeStatus(status:'APROVADO'|'NEGADO', id:number){
         return await this.userRepository.changeStatus(status,id);
     }
 // _____________________________________________________________________________________________________________________________________
@@ -279,7 +285,10 @@ export class TaskService{
 
         const sortedIds = [autorId, atarefadoId].sort((a, b) => a - b);
         const privateRoomId = `dm_${sortedIds[0]}_${sortedIds[1]}`;
+        console.log(privateRoomId);
+        console.log(atarefadoId)
         const chat = await this.chatrepo.getChat(privateRoomId);
+        console.log(chat)
         if(!chat) throw new Error('esse chat não existe');
         const chatId = chat.id;
 

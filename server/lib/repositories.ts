@@ -63,7 +63,21 @@ export class UserRepository{
     async vincularCompany(companyId:number, id:number) {
         const user = await prisma.user.update({
             data:{
-                companyId:companyId
+                companyId:companyId,
+                status:'PENDENTE'
+            },where:{
+                id:id
+            }
+        })
+
+        return user;
+    }
+// ___________________________________________________________________________________________
+// caso o usuário seja negado remove o id da empresa
+    async desvincularCompany( id:number) {
+        const user = await prisma.user.update({
+            data:{
+                companyId:null
             },where:{
                 id:id
             }
@@ -83,7 +97,8 @@ export class UserRepository{
                 role:'CEO',
                 companyId:companyId
             }
-        })
+        });
+        return updated;
     }
     
 // ___________________________________________________________________________________________
@@ -158,7 +173,7 @@ async activeUsersInCompany(companyId:number)
     }
 // ___________________________________________________________________________________________
 
-// pegar usuários que são vinculados a empresa independente se são aprovados ou negados nao sei dessa nao em
+// pegar usuários que são vinculados a empresa independente se são aprovados ou negados nao. sei dessa nao em acho que vou apagar
     async getCompanyUsers(companyId:number)
     {
         const users = await prisma.user.findMany({
@@ -168,6 +183,8 @@ async activeUsersInCompany(companyId:number)
         });
         return users;
     }
+
+
 
 }
 

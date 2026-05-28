@@ -10,13 +10,19 @@ import type { companyComplete } from "../../interfaces/interfaceCompany";
 import styles from './SuaEmpresa.module.css'
 import { getCompany } from "../../services/suaEmpresa/getCompany";
 import { updateCompany } from "../../services/suaEmpresa/updateCompany";
+import { createTaskService } from "../../services/createTask/createTask";
 export function SuaEmpresa(){
+    
     const [id,setId] = useState(0);
     const [onFuncionarios, setOnFuncionarios] = useState<UsersInCompany[]>([]);
     const [offFuncionarios, setOffFuncionarios] = useState<UsersInCompany[]>([]);
     const [role, setRole] = useState('')
     const [companyId, setCompanyId] = useState<number|null>(null);
     const [bool,setBool] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [dateLimit, setDateLimit] = useState<Date>();
+    const [tarefa, setTarefa] = useState('');
+
     const [form, setForm] = useState({
         nome: "",
         cnpj: "",
@@ -48,8 +54,8 @@ export function SuaEmpresa(){
                     console.error(e);
                 }
         };
-        getCompanyData();
         getCookie();
+        getCompanyData();
 
     },[])
 
@@ -69,12 +75,36 @@ export function SuaEmpresa(){
         callActive();
     },[id, bool ]);
 
+    useEffect(() => {
+        if (showModal) {
+            // Trava o scroll da página de trás
+            document.body.style.overflow = 'hidden'; 
+        } else {
+            // Libera o scroll quando o modal fecha
+            document.body.style.overflow = 'unset'; 
+        }
+
+        // Limpeza caso o componente seja desmontado inesperadamente
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showModal]);
 
     const changeStatus1 = async( status:'APROVADO'|'NEGADO',id:number)=>{
         try{
             const user =await  changeStatus(status,id);
             console.log('certo',user);
             setBool(!bool);
+        }catch(e)
+        {
+            console.log(e.response)
+        }
+    }
+
+    const changeRole1 = async (role:'ADMIN'|'USER', id:number)=>{
+        try{
+            await changeRole(role,id);
+            setBool(!bool)
         }catch(e)
         {
             console.log(e.response)
@@ -102,6 +132,43 @@ export function SuaEmpresa(){
     const fLetter = (userNome:string)=>{
         return userNome[0]
     }
+
+    const createTask= async(atarefadoId:number)=>{
+        try{
+            console.log(atarefadoId)
+            if(!dateLimit)throw new Error('sem data limite')
+            const obj:{atarefadoId:number,dateLimit:Date, tarefa:string}= {atarefadoId:atarefadoId, dateLimit:dateLimit, tarefa:tarefa};
+            const task = await createTaskService(obj);
+            console.log(task);
+            setShowModal(false);
+        }catch(e){
+            console.log(e)
+        }
+    }
+
+    function modal(props:{user:UsersInCompany}){
+        const u = props.user;
+        return (
+            <div className={`d-flex justify-content-center align-items-center ${styles.modal} align-self-center justify-self-center`}>
+                <div className={` ${styles.insideModal} p-4 rounded`}>
+                    <h3 className="fs-5">Gerar tarefa</h3>
+                    <p className={`text-secondary`}>Criar tarefa para {u.nome}</p>
+                    <form onSubmit={(e)=>{e.preventDefault()}} className="d-flex flex-column p-3">
+                        <label htmlFor="" className="text-secondary">Descrição de tarefa</label>
+                        <input type="text" name="task" placeholder="Tarefa" id="" className={`${styles.input} rounded p-2 text-white`} onChange={(e)=>{setTarefa(e.target.value)}}/>
+                        <label htmlFor="" className="text-secondary mt-4">Data limite da tarefa</label>
+                        <input type="date" name="dateLimit" placeholder="dateLimit" id="" className={`${styles.inputDate} rounded p-2 text-white`} onChange={(e)=>{const valorInput = e.target.value; const [ano, mes, dia] = valorInput.split('-').map(Number); const dataExata = new Date(ano, mes - 1, dia);setDateLimit(dataExata)}}/>
+                        <div className="d-flex justify-content-center">
+                            <button className={`${styles.button} mx-2 px-4 py-1`} onClick={()=>{createTask(u.id)}}>Criar</button>
+                            <button className={`${styles.buttonFechar} text-white mt-4 rounded-pill border-0 mx-2 p-2`} onClick={()=>{setShowModal(false)}}>Fechar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )
+    }
+console.log(showModal)
+
     return (
         <>
             <NavBar/>
@@ -199,28 +266,41 @@ export function SuaEmpresa(){
                             </thead>
                             <tbody>
                                 {(onFuncionarios.map((u)=>(
-                                    <tr key={u.id}>
-                                        <td className="col p-3"><span className={`bolder  ${styles.fLetter}`}>{fLetter(u.nome)}</span> {u.nome}</td>
-                                        <td className="col">{u.email}</td>
-                                        <td className="col">{u.cpf}</td>    
-                                        <td className="col">{u.role}</td>    
-                                        <td className="d-flex justify-content-end pe-4">
-                                            <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`}> Gerar tarefa</button>
-                                            {u.role == 'ADMIN'?(
-                                                <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`}>Remover admin</button>
-                                            ):(
-                                                <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`}>Tornar admin</button>
-                                            )}
-                                            <button className={`ms-3 ${styles.buttonNegar} rounded text-danger my-2 border-0 px-4 py-2`}>Remover</button>
-                                        </td>
-                                    </tr>
+                                    <>
+                                        <tr key={u.id}>
+                                            <td className="col p-3"><span className={`bolder  ${styles.fLetter}`}>{fLetter(u.nome)}</span> {u.nome}</td>
+                                            <td className="col">{u.email}</td>
+                                            <td className="col">{u.cpf}</td>    
+                                            <td className="col">{u.role}</td>    
+                                            <td className="d-flex justify-content-end pe-4">
+                                                <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`} onClick={()=>{setShowModal(true)}}> Gerar tarefa {showModal}</button>
+                                                {u.role == 'ADMIN'?(
+                                                    <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`} onClick={()=>{changeRole1("USER", u.id)}}>Remover admin</button>
+                                                ):(
+                                                    <button className={`ms-3 ${styles.buttonNegar} rounded text-light my-2 border-0 px-4 py-2`} onClick={()=>{changeRole1("ADMIN", u.id)}}>Tornar admin</button>
+                                                )}
+                                                <button className={`ms-3 ${styles.buttonNegar} rounded text-danger my-2 border-0 px-4 py-2`} onClick={()=>{changeStatus1("NEGADO", u.id)}}>Remover</button>
+                                            </td>
+                                        </tr>
+                                        
+                                        {
+                                            showModal == true && (
+                                                modal({user:u})
+                                            )
+                                        }
+                                    </>
+
                                 )))}
                             </tbody>
                         </table>
                     </div>
                     
                 </div>)}
+                
             </div>
+
+
+
         </>
     );
 }

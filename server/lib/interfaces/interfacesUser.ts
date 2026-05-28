@@ -16,17 +16,20 @@ export interface UpdateData {
 }
 
 
-interface completed {
-    id:number,
-    cnpj?:string,
-    cpf:string,
-    idade:number
-}
 
 export interface cleanUser {
     nome:string,
     email:string,
     cpf:string|null,
     role:string,
-    idade:number|null
+    idade:number|null,
+    id:number
+}
+
+export interface Cookies{
+    id:number,
+    companyId:number,
+    role:string,
+    iat:number,
+    exp:number
 }

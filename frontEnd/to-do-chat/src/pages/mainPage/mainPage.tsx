@@ -75,7 +75,7 @@ export const MainPage = ()=>{
                                 <h2 className='text-start fw-normal mb-3 text-white fs-5'>Vincular-se a uma empresa</h2>
                             </div>
                             <p className={`text-secondary `}>Entre em um espaço existente com o CNPJ  da <br />   empresa</p>
-                                <button className={` ${styles.button}`} onClick={()=>{setMostrarInicio(false); setMostrarVinculo(true)}}>Registrar Empresa</button>
+                                <button className={` ${styles.button}`} onClick={()=>{setMostrarInicio(false); setMostrarVinculo(true)}}>Vincular-se a uma empresa</button>
                         </div>
                     </div>
                     </div>

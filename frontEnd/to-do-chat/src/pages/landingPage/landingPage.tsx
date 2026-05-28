@@ -123,7 +123,7 @@ export default function TaskChatLanding() {
             </p>
 
             <div className="d-flex flex-column flex-sm-row gap-3 mb-4">
-              <a href="/register" className="btn btn-lg rounded-pill text-white px-4" style={{ background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>
+              <a href="/signup" className="btn btn-lg rounded-pill text-white px-4" style={{ background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>
                 Começar agora
               </a>
               <a href="#recursos" className="btn btn-lg btn-outline-light rounded-pill px-4">
@@ -321,20 +321,7 @@ export default function TaskChatLanding() {
         </div>
       </section>
 
-      <section id="contato" className="container py-5">
-        <div className="rounded-5 p-5 text-center border border-secondary border-opacity-25 shadow-lg" style={{ background: "linear-gradient(135deg,rgba(99,102,241,.28),rgba(168,85,247,.18))" }}>
-          <h2 className="display-6 fw-bold mb-3">Comece a organizar sua equipe</h2>
-          <p className="text-white-50 mb-4">Cadastre sua empresa e centralize tarefas e comunicação.</p>
-          <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a href="/register-company" className="btn btn-lg rounded-pill text-white px-4" style={{ background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>
-              Registrar empresa
-            </a>
-            <a href="/login" className="btn btn-lg btn-outline-light rounded-pill px-4">
-              Entrar
-            </a>
-          </div>
-        </div>
-      </section>
+      
 
       <footer className="container py-4 border-top border-secondary border-opacity-25">
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-white-50 small">
