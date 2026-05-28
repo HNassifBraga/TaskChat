@@ -1,12 +1,11 @@
 import { api } from "../api/api";
-import type { completeUserData } from "../../interfaces/interfaces";
 
 
 
-export const UserSignUp= {
+export const vincularCompany= {
     
-    postUser:async (userData:completeUserData) =>{
-        const response = await api.post('/completeSign', userData);
+    postUser:async (cnpj:{cnpj:string}) =>{
+        const response = await api.post('/vincularCompany', cnpj);
         return response.data;
     }
 }

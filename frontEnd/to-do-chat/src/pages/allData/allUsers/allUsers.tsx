@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import { UserService } from '../../../services/getAll/getAllUsers/getAllUsers';
-import type { UserComplete } from '../../../interfaces/interfaces';
+import type { UserComplete } from '../../../interfaces/interfaceError';
 import { ValidateSuperUser } from '../../../services/validate/validateSuperUser/validateSuperUser';
 import { NavBar } from '../../navbar/navbar';
 export function GetAllUsers()

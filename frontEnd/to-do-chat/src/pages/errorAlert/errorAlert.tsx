@@ -1,4 +1,4 @@
-import type {ErrorAlertProps} from '../../interfaces/interfaces'
+import type {ErrorAlertProps} from '../../interfaces/interfaceError'
 
 export function ErrorAlert({ error, errorDetails }: ErrorAlertProps) {
     if (!error && errorDetails.length === 0) return null;

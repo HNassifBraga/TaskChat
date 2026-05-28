@@ -2,7 +2,7 @@
 // Define os endpoints da api. A ideia é mapear a url e o metodo http para o controller correspondente
 
 import { Router } from "express";
-import { UserController, CompanyControler, ChatController } from "./controllers";
+import { UserController, CompanyControler, ChatController, TaskController } from "./controllers";
 
 import type { Request, Response } from 'express';
 
@@ -11,6 +11,7 @@ const router = Router();
 const userController = new UserController();
 const companyControler = new CompanyControler();
 const chatcontroller = new ChatController();
+const taskController = new TaskController();
 router.post('/registerCompany', (req:Request,res:Response)=>{
     
     companyControler.handleCadastro(req,res);
@@ -27,7 +28,7 @@ router.get('/getAllUsers',(req:Request,res:Response)=>{
 
 
 router.get('/logOut',(req:Request,res:Response)=>{
-    userController.handleLogOut(req,res)
+    userController.handleLogOut(req,res)  
 })
 
 router.post('/login',(req:Request,res:Response)=>{
@@ -43,14 +44,14 @@ router.get('/validateSuperuser',(req:Request,res:Response)=>{
     userController.validateSuperUser(req,res);
 })
 
-router.post('/completeSign',(req:Request,res:Response)=>{
-    userController.completeSign(req,res);
+router.post('/vincularCompany',(req:Request,res:Response)=>{
+    userController.vincularCompany(req,res);
 });
 
 router.get('/returnCookies', (req:Request,res:Response)=>{
     userController.returnCookies(req,res);
 })
-
+ 
 router.get('/getLocalStorage',(req:Request,res:Response)=>{
     userController.getUserDataToLocalStorage(req,res);
 })
@@ -76,6 +77,15 @@ router.get('/companyUsers',(req:Request,res:Response)=>{
     userController.getCompanyUsers(req,res);
 })
 
+router.post('/createTask', (req:Request, res:Response)=>{
+    taskController.createTask(req,res);
+})
 
+router.get('/getCompany',(req:Request,res:Response)=>{
+    companyControler.getCompany(req,res);
+})
 
+router.put('/updateCompany',(req:Request,res:Response)=>{
+    companyControler.updateCompany(req,res);
+})
 export {router};

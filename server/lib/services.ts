@@ -3,36 +3,13 @@
 
 import jwt from 'jsonwebtoken';
 import {UserRepository, CompanyRepository, TaskRepository, ChatRepositorie} from './repositories'
-import type {CreateCompanyDTO} from './repositories'
+import type {CreateCompanyDTO, UpdateCompanyDTO} from './interfaces/interfacesCompany'
 import { hash, compareSync } from 'bcrypt';
 import 'dotenv/config';
-
+import type { CreateUserDTO, cleanUser } from './interfaces/interfacesUser';
 
  // Nível de segurança/complexidade
-interface CreateUserDTO {
-    // cnpj:string,
-    // cpf:string,
-    // idade?:number
-    User:string,
-    nome:string,
-    email:string,
-    pass:string,
-}
-interface completed {
-    id:number,
-    cnpj?:string,
-    cpf:string,
-    idade:number
-}
 
-interface cleanUser {
-    user:string,
-    nome:string,
-    email:string,
-    cpf:string|null,
-    role:string,
-    idade:number|null
-}
 
 export class UserService{
     
@@ -40,23 +17,33 @@ export class UserService{
     private companyRepository = new CompanyRepository();
     
 
-    //valida os dados e chama a funçao da file repository para cadastrar o usuário
+    //cadastra o usuário
     async create(data:CreateUserDTO)
     {
-        const userExists = await this.userRepository.isUnique('user', data.User);
-        if(userExists)throw new Error('Usuário existente, escolha um outro nome.')
         const emailExists = await this.userRepository.isUnique('email', data.email);
-        if(emailExists)throw new Error('email já cadastrado, digite um novo ou faça login.')
+        if(emailExists)throw new Error('email já cadastrado, digite um novo ou faça login.');
+        const cpfExists = await this.userRepository.isUnique('cpf', data.cpf);
+        if(cpfExists)throw new Error('cpf já cadastrado, digite um novo ou faça login.')
 
             
         const name = data.nome.toUpperCase();
 
         const hashedPassword = await hash(data.pass, Number(process.env.saltRounds));
 
-        // const CompanyId:number = (await this.companyRepository.getCompany(data.cnpj))!;
-        const obj = {User:data.User, name:name, email:data.email,  hashedPassword:hashedPassword, }
-        return await this.userRepository.create(obj) 
+        if(data.company && typeof(data.company) == 'string')
+        {
+            const companyId:number = (await this.companyRepository.getCompany(data.company))!;
+            const obj = {nome:name,cpf:data.cpf,  email:data.email, idade:data.idade, pass:hashedPassword, company:companyId };
+            return await this.userRepository.create(obj);
+        }else{
+            const obj = {nome:name,cpf:data.cpf,  email:data.email, idade:data.idade, pass:hashedPassword };
+            return await this.userRepository.create(obj);
+        }
     }
+
+// _____________________________________________________________________________________________________________________________________
+
+
 
     // autenticar os usuários
     async login(email:string,pass:string){
@@ -69,6 +56,8 @@ export class UserService{
             return {test:false}
         }
     }
+// _____________________________________________________________________________________________________________________________________
+
 
     //pega todos os usuários
     async getAll()
@@ -77,37 +66,22 @@ export class UserService{
         const users =  await this.userRepository.getAll();
         const obj:any[] = [];
         users.map((user)=>{
-            const u = {id:user.id, nome:user.nome, user:user.user, email:user.email, pass:user.Pass, companyId:user.companyId, cpf:user.cpf, createdAt:user.createdAt, idade:user.idade, role:user.role, status:user.status};
+            const u = {id:user.id, nome:user.nome, email:user.email, pass:user.Pass, companyId:user.companyId, cpf:user.cpf, createdAt:user.createdAt, idade:user.idade, role:user.role, status:user.status};
             obj.push(u);
         })
         return obj;
     }
+// _____________________________________________________________________________________________________________________________________
 
     
     // acaba de registrar o usuário
-    async completeRegistration(data:completed)
+    async vincularCompany(id:number, cnpj:string)
     {
-        if(!data.cpf) throw new Error('Preencha o campo cpf')
-        if(!data.idade) throw new Error('Preencha o campo idade')
-        const cpfExists = await this.userRepository.isUnique('cpf', data.cpf);
-        if(cpfExists)throw new Error('CPF existente, digite um novo ou faça login.')
-        const user = await this.userRepository.getUser(data.id);
-        if(data.cnpj)
-        {
-            console.log(!(user?.companyId), data.cnpj.length);
-            if(!(user?.companyId) && data.cnpj.length == 0)throw new Error('Preencha o campo cnpj');
-            const companyExists = await this.companyRepository.existsCompany(data.cnpj);
-            if(!companyExists)throw new Error('Empresa não existe, fale com o responsável para se comunicar com a gente.');
-            const obj = {cpf:data.cpf, companyId:companyExists.id, idade:data.idade, id:data.id}
-            return await this.userRepository.completeData(obj)
-        }else{
-            if(!(user?.companyId))throw new Error('Preencha o campo cnpj');
-            const obj = {cpf:data.cpf, idade:data.idade, id:data.id}
-            return await this.userRepository.completeData(obj)
-        }
-
-
+        const company =  await this.companyRepository.getCompany(cnpj); 
+        const user = this.userRepository.vincularCompany(company, id);
+        return user;    
     }
+// _____________________________________________________________________________________________________________________________________
 
     async createCookies (id:number)
     {
@@ -149,55 +123,65 @@ export class UserService{
         }
     }
 
+// _____________________________________________________________________________________________________________________________________
 
     decodeToken(token:any){
         const decode = jwt.verify(token, process.env.JWT_SECRET as string)as any
         return decode;
     }   
+// _____________________________________________________________________________________________________________________________________
 
     async getUserToLocalStorage(id:number){
         return await this.userRepository.getUser(id)
     }
 
+// _____________________________________________________________________________________________________________________________________
 
     async activeUsersInCompany(companyId:number)
     {
         const users = await this.userRepository.activeUsersInCompany(companyId);
         const cleanUser:cleanUser[] = [];
         users.map((u)=>{
-            const obj = {user:u.user, nome:u.nome, email:u.email, cpf:u.cpf, idade:u.idade, role:u.role,id:u.id};
+            const obj = { nome:u.nome, email:u.email, cpf:u.cpf, idade:u.idade, role:u.role,id:u.id};
             cleanUser.push(obj);
         })
         return cleanUser;
     }
+// _____________________________________________________________________________________________________________________________________
 
     async offUsersInCompany(companyId:number)
     {
         const users = await this.userRepository.offUsersInCompany(companyId);
         const cleanUser:cleanUser[] = [];
         users.map((u)=>{
-            const obj = {user:u.user, nome:u.nome, email:u.email, cpf:u.cpf, idade:u.idade, role:u.role, id:u.id};
+            const obj = { nome:u.nome, email:u.email, cpf:u.cpf, idade:u.idade, role:u.role, id:u.id};
             cleanUser.push(obj);
         });
         return cleanUser;
     }
+// _____________________________________________________________________________________________________________________________________
 
-    async changeStatus(status:'APROVADO'|'NEGADO', id:number){
+    async changeStatus(status:'APROVADO'|'NEGADO', id:number, companyId:number){
+        const companyBosses = this
         return await this.userRepository.changeStatus(status,id);
     }
+// _____________________________________________________________________________________________________________________________________
 
     async updateRole(role:'ADMIN'|'USER',id:number)
     {
         const updated = await this.userRepository.updateRole(id, role);
         return updated;
     }
+// _____________________________________________________________________________________________________________________________________
 
-    
+    //provavelmente vou mudar isso
     async getCompanyUsers(companyId:number)
     {
         const users = await this.userRepository.getCompanyUsers(companyId);
         return users
     }
+// _____________________________________________________________________________________________________________________________________
+
 }
 
 
@@ -212,7 +196,11 @@ export class CompanyService{
     {
         const cnpj = await this.companyRepository.isUnique('cnpj', data.cnpj);
         if(cnpj) throw new Error('Empresa já existe');
-        const obj = {cnpj:data.cnpj, nome:data.nome, ownerId:data.ownerId};
+        const email = await this.companyRepository.isUnique('email', data.email);
+        if(email) throw new Error('Empresa já existe');
+        const telefone = await this.companyRepository.isUnique('telefone', data.telefone);
+        if(telefone) throw new Error('Empresa já existe');
+        const obj = {cnpj:data.cnpj, nome:data.nome, ownerId:data.ownerId, email:data.email, endereco:data.endereco, telefone:data.telefone};
         const result =  await this.companyRepository.create(obj);
 
         await this.userRep.updateCompIdRole(result.ownerId,result.id);
@@ -227,6 +215,21 @@ export class CompanyService{
     }
 
 
+    async getCompany(id:number)
+    {
+        return await this.companyRepository.getCompanyById(id);
+    }
+
+    async updateCompany(data:Partial<Omit<UpdateCompanyDTO, 'ownerId'>>)
+    {
+        const cnpj = await this.companyRepository.isUniqueNot('cnpj', data.cnpj!, data.id!);
+        if(cnpj) throw new Error('Outra empresa com esse cnpj já existe');
+        const email = await this.companyRepository.isUniqueNot('email', data.email!, data.id!);
+        if(email) throw new Error('Outra empresa com esse email já existe');
+        const telefone = await this.companyRepository.isUniqueNot('telefone', data.telefone!,data.id!);
+        if(telefone) throw new Error('Outra empresa com esse telefone já existe');
+        return await this.companyRepository.updateCompany(data);
+    }
 }
 
 
@@ -276,9 +279,11 @@ export class TaskService{
 
         const sortedIds = [autorId, atarefadoId].sort((a, b) => a - b);
         const privateRoomId = `dm_${sortedIds[0]}_${sortedIds[1]}`;
-
+        const chat = await this.chatrepo.getChat(privateRoomId);
+        if(!chat) throw new Error('esse chat não existe');
+        const chatId = chat.id;
 
         const task = this.taskrepo.createTask(companyId, autorId, atarefadoId, chatId, status, dateLimit, tarefa);
         return task;
     }
-}
+}  

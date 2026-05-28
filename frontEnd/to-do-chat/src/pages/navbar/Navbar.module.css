@@ -1,0 +1,19 @@
+.logo{
+        background: radial-gradient(circle at top left, rgb(99, 101, 241), transparent 32%), 
+                    radial-gradient(circle at bottom right, rgb(169, 85, 247), transparent 30%), 
+                    #0a4eec54;
+        border-radius: 100%;
+        width: 3rem;
+        height:3rem;
+        margin: 0;
+}
+
+.bg{
+        background: radial-gradient(circle at top left, rgba(23, 24, 116, 0.35), transparent 32%), 
+              radial-gradient(circle at bottom right, rgba(59, 11, 103, 0.25), transparent 30%), 
+              #0f172a;
+}
+
+.buttonNegar{
+    background:transparent
+}

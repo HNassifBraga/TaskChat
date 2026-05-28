@@ -6,7 +6,9 @@ import {  type Request, type Response } from 'express';
 import {UserService, CompanyService,  TaskService} from './services';
 import {z} from 'zod'
 import dotenv from "dotenv";
-import { createUserScheme, createCompanyScheme, loginScheme, completeSignUp,tratamentoErroZod, completeSignUpAdmin} from '../services/zod';
+import { tratamentoErroZod} from './zod/zodError';
+import {createCompanyScheme, vincularCompany, updateCompanyScheme} from './zod/zodCompany'
+import { createUserScheme, loginScheme } from './zod/zodUser';
 import { stat } from 'fs';
 
 dotenv.config()
@@ -40,22 +42,17 @@ export class UserController{
             })
         }
     }
+// _____________________________________________________________________________________________________________________________________
     
-    async completeSign(req:Request,res:Response){
+    async vincularCompany(req:Request,res:Response){
         const token = req.cookies.token;
         const decode = this.userService.decodeToken(token);
         const id = decode.id;
         try{
-            if(decode.companyId)
-            {
-                const data = completeSignUpAdmin.parse(req.body);
-                const obj = {id:id, cpf:data.cpf, idade:data.idade};
-                await this.userService.completeRegistration(obj)
-            }else{
-                const data = completeSignUp.parse(req.body);
-                const obj = {id:id, cnpj:data.cnpj, cpf:data.cpf, idade:data.idade};
-                await this.userService.completeRegistration(obj);
-            }
+            const data = vincularCompany.parse(req.body); 
+            console.log(data)
+            if(!data.cnpj)throw new Error('Digite o CNPJ');
+            const user = await this.userService.vincularCompany(id, data.cnpj);
             const deleteCookies = this.userService.resetCookies();
             res.clearCookie(deleteCookies.name, deleteCookies.options);
     
@@ -74,6 +71,7 @@ export class UserController{
         
     }
 
+// _____________________________________________________________________________________________________________________________________
 
     async updateRole(req:Request,res:Response)
     {
@@ -87,6 +85,7 @@ export class UserController{
             return res.status(400).json(e);
         }
     }
+// _____________________________________________________________________________________________________________________________________
 
     async handleLogIn(req:Request,res:Response)
     {
@@ -224,7 +223,10 @@ export class UserController{
     async changeStatus(req:Request,res:Response){
         try{
             const {status, id } = req.body;
-            const updated = await this.userService.changeStatus(status,id);
+            const token= req.cookies.token;
+            const decoded = this.userService.decodeToken(token);
+            const companyId = decoded.companyId;
+            const updated = await this.userService.changeStatus(status,id, companyId);
             console.log(updated);
             return res.status(200).json('updated')
         }catch(e)
@@ -297,6 +299,32 @@ export class CompanyControler{
             return res.status(400).json(e)
         }
     }
+
+    async getCompany(req:Request,res:Response)
+    {
+        try{
+            const token = req.cookies.token;
+            const decode = this.userService.decodeToken(token);
+            const company = await  this.companyService.getCompany(decode.id);
+            return res.status(200).json(company);
+        }catch(e){
+            return res.status(400).json(e);
+        }
+    }
+
+    async updateCompany(req:Request, res:Response)
+    {
+        try{
+            console.log(req.body);
+            const data = updateCompanyScheme.parse(req.body.data);                    
+            const company = await  this.companyService.updateCompany(data);
+            return res.status(200).json(company);
+        }catch(e)
+        {
+            console.log(e);
+            return res.status(400).json({error:e.message});
+        }
+    }
 }
 
 
@@ -333,5 +361,5 @@ export class TaskController{
             console.log(e);
             return res.status(400).json(e)
         }
-    }
+    }  
 }

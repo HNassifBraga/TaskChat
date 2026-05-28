@@ -4,12 +4,10 @@ import GetAllUsers from '../pages/allData/allUsers/allUsers'
 import { SignUp } from '../pages/signUpUsers/signUpUsers'
 import {MainPage} from '../pages/mainPage/mainPage'
 import { LogInInt } from '../pages/login/login';
-import { CompleteSign } from '../pages/completeLogin/completeSignUp';
-import {SignCompanyUp} from '../pages/signCompany/SignUpCompany'
 import { GetAllCompany } from '../pages/allData/allCompany/allCompany';
 import { SuaEmpresa } from '../pages/suaEmpresa/suaEmpresa';
 import { ChatPage } from '../pages/chat/chatPage';
-
+import TaskChatLanding from '../pages/landingPage/landingPage';
 export const Routess =()=>{
 
   return (
@@ -20,11 +18,10 @@ export const Routess =()=>{
         <Route path='/getAllUsers' element={<GetAllUsers/>}/>
         <Route path='/getAllCompany' element={<GetAllCompany/>}/>
         <Route path='/mainPage' element={<MainPage/>}/>
-        <Route path='' element={<LogInInt/>}/>
-        <Route path='/completeSign' element={<CompleteSign/>}/>
-        <Route path='/signCompanyUp' element={<SignCompanyUp/>}/>
+        <Route path='/login' element={<LogInInt/>}/>
         <Route path='/myCompany' element={<SuaEmpresa/>}/>
         <Route path='/chats' element={<ChatPage/>}/>
+        <Route path='' element={<TaskChatLanding/>}/>
       </Routes>
     </Router>
 

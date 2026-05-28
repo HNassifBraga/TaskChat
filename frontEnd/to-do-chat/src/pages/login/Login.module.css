@@ -1,0 +1,41 @@
+.bg_login{
+    background: radial-gradient(circle at top left, rgba(99,102,241,.35), transparent 32%), 
+              radial-gradient(circle at bottom right, rgba(168,85,247,.25), transparent 30%), 
+              #0f172a;
+}
+
+.logo{
+        background: radial-gradient(circle at top left, rgb(99, 101, 241), transparent 32%), 
+                    radial-gradient(circle at bottom right, rgb(169, 85, 247), transparent 30%), 
+                    #0a4eec54;
+        border-radius: 100%;
+        width: 3rem;
+        height:3rem;
+}
+
+.card{
+    background: transparent rgba(191, 191, 191, 0.422);
+    width: 35rem;
+    border:solid gray 1px
+}
+
+.input{
+    background: transparent;
+    background-color: rgba(128, 128, 128, 0.13);
+    border: none;
+}
+
+.button{
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    padding: 0.6rem;
+    width: 100%;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    margin: 1.5rem 0 0 0 ;
+}
+
+.button:hover{
+    background: linear-gradient(135deg, #6365f184, #a955f776);
+
+}

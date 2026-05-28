@@ -2,31 +2,42 @@
 
 
 import { prisma } from '../src/database'
+import type { CreateUserDTO, UpdateData } from './interfaces/interfacesUser';
+import type { CreateCompanyDTO, UpdateCompanyDTO} from './interfaces/interfacesCompany';
 
-
-interface CreateUserDTO {
-    
-    User:string,
-    name:string,
-    email:string,
-    hashedPassword:string,
-}
-
-interface UpdateData {
-    id:number,
-    companyId?:number,
-    cpf:string,
-    idade?:number
-}
-
-export interface CreateCompanyDTO{
-    cnpj:string,
-    nome:string,
-    ownerId?:number
-}
 
 export class UserRepository{
 
+    
+    //sign up page
+
+    async create(data:CreateUserDTO){
+
+        const user = await prisma.user.create({
+        data:{
+            nome:data.nome,
+            cpf:data.cpf,
+            email:data.email,
+            idade:data.idade,
+            Pass:data.pass,
+            }
+        });
+        return user;
+    }
+
+    async isUnique(fields:'cpf'|'email', value:string)
+    {
+        return await prisma.user.findFirst({
+            where:{
+                [fields]:value
+            }
+        })
+    }
+
+// ________________________________________________________________________________________
+
+
+// login
     async login(email:string)
     {
         return await prisma.user.findUnique({
@@ -35,60 +46,35 @@ export class UserRepository{
             }
         });
     }
+// ___________________________________________________________________________________________
 
 
-
-    //funçao usada para verificar se o cpf/user/email ja esta cadastrado no db
-    async isUnique(fields:'user'|'cpf'|'email', value:string)
-    {
-        return await prisma.user.findFirst({
-            where:{
-                [fields]:value
-            }
-        })
-    }
-    
-    //criar usuário
-    async create(data:CreateUserDTO){
-        const user = await prisma.user.create({
-            data:{
-                // idade:data.idade,
-                // cpf:data.cpf,
-                // companyId:data.companyId,
-                user:data.User,
-                nome:data.name,
-                email:data.email,
-                Pass:data.hashedPassword,
-            }
-        })
-        return user;
-    }
-
-    //pegar todos os usuários
+// get all users for superuser
     async getAll()
     {
         const users = await prisma.user.findMany();
         return users;
     }
 
-    async completeData(data: UpdateData) {
-        const dataToUpdate: any = {
-            cpf: data.cpf,
-            idade: data.idade,
-        };
+// ___________________________________________________________________________________________
 
-        if (data.companyId) {
-            dataToUpdate.companyId = data.companyId;
-        }
 
+// acho que vou alterar isso
+    async vincularCompany(companyId:number, id:number) {
         const user = await prisma.user.update({
-            where: { id: data.id },
-            data: dataToUpdate
-        });
+            data:{
+                companyId:companyId
+            },where:{
+                id:id
+            }
+        })
 
         return user;
     }
+// ___________________________________________________________________________________________
 
+
+// atualizar o role para quando o usuário registrar a empresa
     async updateCompIdRole(userId:number,companyId:number){
         const updated = await prisma.user.update({
             where:{
@@ -100,7 +86,10 @@ export class UserRepository{
         })
     }
     
+// ___________________________________________________________________________________________
 
+
+// transformar o usuário em admin ou user usando uma conta ceo
     async updateRole(id:number,role:'ADMIN'|'USER')
     {
         const updated = await prisma.user.update({
@@ -112,6 +101,11 @@ export class UserRepository{
         });
         return updated;
     }
+
+// ___________________________________________________________________________________________
+
+
+// nao sei para o que é isso
     async getUser(id:number)
     {
         const user =  await prisma.user.findUnique({
@@ -121,8 +115,9 @@ export class UserRepository{
         })
         return user;
     }
+// ___________________________________________________________________________________________
 
-
+// aceitar ou negar um usuário que quer ser colaborador
     async changeStatus(status:'PENDENTE'|'APROVADO'|'NEGADO', id:number){
         const updated = await prisma.user.update({
             where:{
@@ -134,10 +129,12 @@ export class UserRepository{
         return updated;
     }
 
+// ___________________________________________________________________________________________
 
-    async activeUsersInCompany(companyId:number)
-    {
-        const users = await prisma.user.findMany({
+// pegar usuários que são aprovados na empresa 
+async activeUsersInCompany(companyId:number)
+{
+    const users = await prisma.user.findMany({
             where:{
                 status:'APROVADO',
                 companyId:companyId,
@@ -145,7 +142,10 @@ export class UserRepository{
         });
         return users;
     }
-    
+
+// ___________________________________________________________________________________________
+
+// usuários que estão para serem aprovados ou negados na empresa
     async offUsersInCompany(companyId:number)
     {
         const users = await prisma.user.findMany({
@@ -156,7 +156,9 @@ export class UserRepository{
         });
         return users;
     }
+// ___________________________________________________________________________________________
 
+// pegar usuários que são vinculados a empresa independente se são aprovados ou negados nao sei dessa nao em
     async getCompanyUsers(companyId:number)
     {
         const users = await prisma.user.findMany({
@@ -171,8 +173,7 @@ export class UserRepository{
 
 
 export class CompanyRepository{
-    /////////////////////////////////////////////////////////////////
-    // usado para registrar usuários
+// usado para ver se a empresa existe na hora de um usuário se registrar a uma empresa ou na hora de um ceo registrar a empresa
     async existsCompany(cnpj:string)
     {
         return await prisma.company.findFirst({
@@ -181,6 +182,8 @@ export class CompanyRepository{
             }
         })
     }
+// ___________________________________________________________________________________________
+// pegar o id da empresa
     async getCompany(cnpj:string)
     {
         const company = await prisma.company.findUniqueOrThrow({
@@ -190,11 +193,11 @@ export class CompanyRepository{
         })
         return company.id
     }
-    /////////////////////////////////////////////////////////////////
-    
+// ___________________________________________________________________________________________
 
-    //verifica se ja existe o cnpj que sera cadastrao no db
-    async isUnique(fields:'cnpj', value:string)
+    
+// acho que essa funçao ja existe. provavelmente mudaaaaaa!!!!!!!!!!! 
+    async isUnique(fields:'cnpj'|'email'|'telefone', value:string)
     {
         return await prisma.company.findFirst({
             where:{
@@ -202,6 +205,20 @@ export class CompanyRepository{
             }
         })
     }
+// ___________________________________________________________________________________________
+
+    async isUniqueNot(fields:'cnpj'|'email'|'telefone', value:string,id:number)
+    {
+        return await prisma.company.findFirst({
+            where:{
+                [fields]:value,
+                NOT:{
+                    id:id
+                }
+            }
+        })
+    }
+
     //cria company
     async create(data:CreateCompanyDTO)
     {
@@ -209,26 +226,61 @@ export class CompanyRepository{
             data:{
                 cnpj:data.cnpj,
                 nome:data.nome,
+                email:data.email,
+                endereco:data.endereco,
+                telefone:data.telefone,
                 ownerId:data.ownerId!
             }
         })
         return company;
     }
-    async deleteComp(){
+// ___________________________________________________________________________________________
+// deletar empresa
+    async deleteComp(id:number){
         const company = await prisma.company.delete({
             where:{
-                id:1
+                id:id
             }
         }
         )
     }
+// ___________________________________________________________________________________________
 
+// pegar todas as empresas para o superUser
     async getAll()
     {
         const companys = await prisma.company.findMany();
         return companys;
     }
+    // ___________________________________________________________________________________________
+
+    async getCompanyById(id:number)
+    {
+        const company = await prisma.company.findUnique({
+            where:{
+                id:id
+            }
+        });
+        return company;
+    }
+    async updateCompany(data:Partial<Omit<UpdateCompanyDTO,'ownerId'>>)
+    {
+        const company = await prisma.company.update({
+            where:{
+                id:data.id
+            },data:{
+                cnpj:data.cnpj,
+                nome:data.nome,
+                email:data.email,
+                endereco:data.endereco,
+                telefone:data.telefone
+            }
+        });
+        return company;
+    }
 }
+
+
 
 export class ChatRepositorie{
     async createChat( Nome:string, CompanyId:number, Tipo:'DIRECT'|'GROUP'){

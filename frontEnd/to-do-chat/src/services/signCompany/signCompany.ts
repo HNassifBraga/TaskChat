@@ -1,5 +1,5 @@
 import { api } from "../api/api";
-import type { companyData } from "../../interfaces/interfaces";
+import type { companyData } from "../../interfaces/interfaceCompany";
 
 
 

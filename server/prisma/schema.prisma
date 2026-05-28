@@ -17,7 +17,6 @@ model User{
   id Int @id @default(autoincrement())
 
   nome String
-  user String @unique
   email String @unique
   Pass String
 
@@ -42,6 +41,9 @@ model Company{
   id Int @id @default(autoincrement())
   nome String
   cnpj String @unique
+  telefone String @unique
+  email String @unique
+  endereco String
   createdAt DateTime @default(now())
   ownerId Int 
 

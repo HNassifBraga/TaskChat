@@ -1,7 +1,7 @@
 import { api } from "../api/api";
 
-import type { UserLocalStorage } from "../../interfaces/interfaces";
-import type { signUpUser } from "../../interfaces/interfaces";
+import type { UserLocalStorage } from "../../interfaces/interfaceUser";
+import type { signUpUser } from "../../interfaces/interfaceUser";
 
 
 export const UserSignUp= {

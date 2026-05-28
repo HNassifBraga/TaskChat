@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import type {ErrorDetail} from '../interfaces/interfaces'
+import type {ErrorDetail} from '../interfaces/interfaceError'
 
 
 export function useErrorHandler() {

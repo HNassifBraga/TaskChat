@@ -3,20 +3,24 @@ import { UserSignUp } from '../../services/signUp/signUpService';
 import { useNavigate } from 'react-router-dom';
 import { ErrorAlert } from '../errorAlert/errorAlert';
 import { useErrorHandler } from '../../hooks/errorHandler';
-import type {signUpUser} from '../../interfaces/interfaces'
+import type {signUpUser} from '../../interfaces/interfaceUser'
 import { getUserCookie } from '../../services/getUserCookie/getUserCookie';
 import { createLocalStorage } from '../../services/createLocalStorage/createLocalStorage';
-
+import { cleanDigits } from '../../utils/formatters';
+import styles from './Signup.module.css'
 
 export const SignUp = () => {
     const navigate = useNavigate();
     const [nome, setNome] = useState<string>('');
-    const [username, setUsername] = useState<string>('');
+    const [cpf, setCpf] = useState<string>('');
     const [email, setEmail] = useState<string>('');
+    const [idade, setIdade] = useState<number>(0);
     const [pass, Setpass] = useState<string>('');
 
     const {error, errorDetails, handleApiError } = useErrorHandler();
 
+
+    // caso o usuário tenha algum token, significa que esta cadastrado, logo não tem porque estar nessa página
     useEffect(() => {
         const getUserCookies = async()=>{
             const cookie = await getUserCookie();
@@ -28,13 +32,19 @@ export const SignUp = () => {
         getUserCookies();
     }, [navigate]);
 
+// ________________________________________________________________________________________________________________
+
+
+
+
 
     const handleSignUp = async () => {
 
         const userData:signUpUser = {
             nome: nome,
-            User: username,
+            cpf:cpf,
             email: email,
+            idade:idade,
             pass: pass,
         };
         try {
@@ -49,16 +59,25 @@ export const SignUp = () => {
 
 
     return (
-        <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light py-4 px-3">
-            <div className="card shadow-lg border-0" style={{ width: '100%', maxWidth: '450px', borderRadius: '15px' }}>
+        <div className={`container-fluid min-vh-100 d-flex flex-column align-items-center justify-content-center py-4 px-3  ${styles.bg_signup}`}>
+            <div className="text-white mb-5 fs-4  ">
+                <span
+                className={`d-inline-flex align-items-center justify-content-center rounded-4   ${styles.logo}`}
+                >
+                T
+                </span>
+                TaskChat
+            </div>
+            <div className={` shadow-lg rounded text-white w-25 ${styles.card}`} >
                 <div className="card-body p-4 p-sm-5">
-                    <h1 className="text-center fw-light mb-4 fs-2">Sign Up</h1>
+                    <h1 className="text-center fw-light mb-4 fs-2">Crie sua conta</h1>
+                    <p className='text-center text-secondary'>Comece gratis em menos de um minuto</p>
                     
                     <form onSubmit={(e) => e.preventDefault()}>
                         <div className="mb-3">
-                            <label className="form-label small fw-bold text-secondary">Nome Completo</label>
+                            <label className="form-label small text-white">Nome Completo</label>
                             <input 
-                                className="form-control form-control-md shadow-sm" 
+                                className={`${styles.input} text-white w-100 rounded p-2`}
                                 type="text" 
                                 placeholder="Digite seu nome" 
                                 onChange={(e) => setNome(e.target.value)} 
@@ -66,29 +85,39 @@ export const SignUp = () => {
                         </div>
                         
                         <div className="mb-3">
-                            <label className="form-label small fw-bold text-secondary">Username</label>
+                            <label className="form-label small text-white">CPF</label>
                             <input 
-                                className="form-control form-control-md shadow-sm" 
+                                className={`${styles.input} text-white w-100 rounded p-2`}
                                 type="text" 
-                                placeholder="Como quer ser chamado?" 
-                                onChange={(e) => setUsername(e.target.value)} 
+                                placeholder="CPF" 
+                                value={cpf}
+                                onChange={(e)=>{setCpf(cleanDigits(e.target.value))}} 
                             />
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label small fw-bold text-secondary">Email</label>
+                            <label className="form-label small text-white">Email</label>
                             <input 
-                                className="form-control form-control-md shadow-sm" 
+                                className={`${styles.input} text-white w-100 rounded p-2`}
                                 type="email" 
                                 placeholder="exemplo@email.com" 
                                 onChange={(e) => setEmail(e.target.value)} 
                             />
                         </div>
+                        <div className="mb-3">
+                            <label className="form-label small text-white">Idade</label>
+                            <input 
+                                className={`${styles.input} text-white w-100 rounded p-2`}
+                                type="email" 
+                                placeholder="Idade" 
+                                onChange={(e) => setIdade(Number(e.target.value))} 
+                            />
+                        </div>
 
                         <div className="mb-3">
-                            <label className="form-label small fw-bold text-secondary">Senha</label>
+                            <label className="form-label small text-white">Senha</label>
                             <input 
-                                className="form-control form-control-md shadow-sm" 
+                                className={`${styles.input} text-white w-100 rounded p-2`}
                                 type="password" 
                                 placeholder="Crie uma senha forte" 
                                 onChange={(e) => Setpass(e.target.value)} 
@@ -96,7 +125,7 @@ export const SignUp = () => {
                         </div>
 
                         <button 
-                            className="btn btn-primary w-100 fw-bold shadow-sm mt-3 py-2" 
+                            className={styles.button}
                             type="button" 
                             onClick={handleSignUp}
                         >
@@ -106,12 +135,12 @@ export const SignUp = () => {
                     <div className="mt-4">
                        <ErrorAlert error={error} errorDetails={errorDetails}/>
                     </div>
-                    <div className="align-item-center">
-                        <p className="d-flex justify-content-center mb-0 mt-4 ">já tem uma conta? <br/>clique no link abaixo</p>
-                        <button className="d-flex justify-content-center btn btn-link m-0 w-100 " onClick={()=>{navigate('/')}}>Log In</button>
-                    </div>
                 </div>
             </div>
+                    <div className=" d-flex w-25 justify-content-center mt-3">
+                        <span className="text-secondary mt-2 text-center ">já tem uma conta?</span>
+                        <button className="btn btn-link m-0  " onClick={()=>{navigate('/login')}}>Log In</button>
+                    </div>
         </div>
     );
 }

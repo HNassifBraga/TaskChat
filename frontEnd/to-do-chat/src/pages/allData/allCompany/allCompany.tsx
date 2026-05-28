@@ -2,7 +2,7 @@ import { getAllCompny } from "../../../services/getAll/getAllCompany/getAllCompa
 import { useEffect, useState } from "react";
 import { ValidateSuperUser } from "../../../services/validate/validateSuperUser/validateSuperUser";
 import { NavBar } from "../../navbar/navbar";
-import type { companyComplete } from "../../../interfaces/interfaces";
+import type { companyComplete } from "../../../interfaces/interfaceError";
 export const GetAllCompany=()=>{
     
     const [company,setCompany] = useState<companyComplete[]>([]);

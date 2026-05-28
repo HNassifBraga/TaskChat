@@ -6,7 +6,7 @@ import http from 'http';
 import express from 'express';
 import {router} from '../routes';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser'; 
 import { setupSocket } from './socket';
 
 const app = express();
