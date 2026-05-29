@@ -79,7 +79,7 @@ export function ChatComponent({ amigoSelecionadoId, socketInstancia, companyId, 
   };
 
   return (
-    <div className='d-flex flex-column w-100 h-100 border rounded-bottom p-4 '>
+    <div className='d-flex flex-column w-100 h-100  rounded-bottom p-4 '>
       <div style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
         {messages.map((msg, index) => (
           <div key={index}  style={{ textAlign: msg.userId === userId ? 'right' : 'left', margin: '5px 0' }}>

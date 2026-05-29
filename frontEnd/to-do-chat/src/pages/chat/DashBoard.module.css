@@ -1,0 +1,17 @@
+.bg{
+    background: radial-gradient(circle at top left, rgba(99,102,241,.35), transparent 20%),
+    radial-gradient(circle at bottom right, rgba(168,85,247,.25), transparent 30%)
+    #0f172a;
+}
+
+.bg_chat{
+    background-color: rgb(23, 12, 62);
+    height: 25rem;
+    border: 0.000001px solid rgb(65, 63, 67);
+}
+
+.lista{
+    width: 15rem;
+    border-right: 0.000001px solid rgb(65, 63, 67);
+
+}

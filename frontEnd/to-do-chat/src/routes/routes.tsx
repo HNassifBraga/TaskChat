@@ -6,7 +6,7 @@ import {MainPage} from '../pages/mainPage/mainPage'
 import { LogInInt } from '../pages/login/login';
 import { GetAllCompany } from '../pages/allData/allCompany/allCompany';
 import { SuaEmpresa } from '../pages/suaEmpresa/suaEmpresa';
-import { ChatPage } from '../pages/chat/chatPage';
+import { ChatPage } from '../pages/chat/dashBoard';
 import TaskChatLanding from '../pages/landingPage/landingPage';
 export const Routess =()=>{
 
